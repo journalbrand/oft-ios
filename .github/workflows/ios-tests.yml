@@ -1,0 +1,42 @@
+name: iOS Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Create Xcode project structure
+        run: |
+          # Here we would create a proper Xcode project structure
+          # For simplicity in this example, we'll just copy files
+          mkdir -p OftIos
+          cp src/FooProvider.swift OftIos/
+          cp tests/FooProviderTests.swift OftIos/
+      
+      - name: Run Tests
+        run: |
+          xcodebuild test -scheme OftIos -destination 'platform=iOS Simulator,name=iPhone 14'
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      - name: Install OpenFastTrace
+        run: |
+          python -m pip install --upgrade pip
+          pip install openfasttrace
+      
+      - name: Run Traceability Analysis
+        run: |
+          # Import specifications from all source files and generate a tracing report
+          oft import -i . -o trace.xml
+          oft report -i trace.xml -o verification-ios.md -f markdown
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-verification
+          path: verification-ios.md 
