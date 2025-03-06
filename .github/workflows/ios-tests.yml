@@ -1,38 +1,39 @@
-name: iOS Tests
+name: iOS Traceability Analysis
 
 on: [push, pull_request]
 
 jobs:
-  test:
-    runs-on: macos-latest
+  trace:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       
-      - name: Create Xcode project structure
-        run: |
-          # Here we would create a proper Xcode project structure
-          # For simplicity in this example, we'll just copy files
-          mkdir -p OftIos
-          cp src/FooProvider.swift OftIos/
-          cp tests/FooProviderTests.swift OftIos/
-      
-      - name: Run Tests
-        run: |
-          xcodebuild test -scheme OftIos -destination 'platform=iOS Simulator,name=iPhone 14'
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          python-version: '3.x'
+          distribution: 'temurin'
+          java-version: '17'
           
       - name: Install OpenFastTrace
         run: |
-          python -m pip install --upgrade pip
-          pip install openfasttrace
+          # Clone the OpenFastTrace repository
+          git clone https://github.com/itsallcode/openfasttrace.git
+          cd openfasttrace
+          
+          # Build with Maven
+          ./mvnw clean install -DskipTests
+          
+          # Make the OFT command available
+          sudo ln -s $(pwd)/openfasttrace-cli/target/openfasttrace-cli-*-jar-with-dependencies.jar /usr/local/bin/openfasttrace.jar
+          echo '#!/bin/sh
+          java -jar /usr/local/bin/openfasttrace.jar "$@"' | sudo tee /usr/local/bin/oft
+          sudo chmod +x /usr/local/bin/oft
       
       - name: Run Traceability Analysis
         run: |
           # Import specifications from all source files and generate a tracing report
+          echo "Analyzing traceability in iOS implementation..."
           oft import -i . -o trace.xml
           oft report -i trace.xml -o verification-ios.md -f markdown
       
