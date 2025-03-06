@@ -3,7 +3,7 @@ import XCTest
 
 /**
  * Test suite for the FooProvider class
- * [utest~ios.string-return~1]
+ * [utest->req~ios.string-return~1]
  */
 class FooProviderTests: XCTestCase {
     /**

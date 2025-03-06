@@ -1,7 +1,8 @@
 import Foundation
 
 /**
- * [impl~ios.string-return~1]
+ * Swift implementation of the string return capability
+ * [impl->req~ios.string-return~1]
  */
 public class FooProvider {
     /**
